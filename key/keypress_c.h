@@ -156,7 +156,11 @@
 		keyInput.ki.dwFlags = flags;
 		keyInput.ki.time = 0;
 		keyInput.ki.dwExtraInfo = 0;
-		SendInput(1, &keyInput, sizeof(keyInput));
+		UINT result = SendInput(1, &keyInput, sizeof(keyInput));
+		if (result == 0) {
+			DWORD error = GetLastError();
+			printf("SendInput failed! Error code: %lu\n", error);
+		}
 	}
 #endif
 

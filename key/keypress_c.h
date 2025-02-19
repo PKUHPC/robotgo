@@ -93,6 +93,13 @@
 	HDESK _lastKnownInputDesktop = NULL;
 
 	HDESK syncThreadDesktop() {
+		DWORD activeSessionId = WTSGetActiveConsoleSessionId();
+		if (activeSessionId != 1) {
+			printf("Current session is not interactive (active session ID: %d)\n", activeSessionId);
+		} else {
+			printf("Running in interactive session (session ID: %d)\n", activeSessionId);
+		}
+
     	HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
 		if (!hDesk) {
 			DWORD err = GetLastError();
@@ -103,9 +110,8 @@
 		if (!SetThreadDesktop(hDesk)) {
 			DWORD err = GetLastError();
 			printf("Failed to sync desktop to thread [0x%08X]\n", err);
+			CloseDesktop(hDesk);
 		}
-
-		CloseDesktop(hDesk);
 
 		return hDesk;
 	}

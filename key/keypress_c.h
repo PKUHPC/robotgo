@@ -183,12 +183,16 @@
 		// 	printf("SendInput failed! Error code: %lu\n", error);
 		// }
 
+    	UINT send;
+		HDESK hDesk;
+		DWORD error;
+
 		retry:
-		UINT send = SendInput(1, &keyInput, sizeof(keyInput));
+		send = SendInput(1, &keyInput, sizeof(keyInput));
 		if (send != 1) {
-			DWORD error = GetLastError();
+			error = GetLastError();
 			printf("SendInput failed! Error code: %lu\n", error);
-			HDESK hDesk = syncThreadDesktop();
+			hDesk = syncThreadDesktop();
 			if (_lastKnownInputDesktop != hDesk) {
 				_lastKnownInputDesktop = hDesk;
 				goto retry;

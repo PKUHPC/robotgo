@@ -12,7 +12,6 @@
 #include "../base/microsleep.h"
 #include "keypress.h"
 #include "keycode_c.h"
-#include <stdio.h>
 #include <ctype.h> /* For isupper() */
 #if defined(IS_MACOSX)
 	#include <ApplicationServices/ApplicationServices.h>
@@ -21,6 +20,9 @@
 #elif defined(USE_X11)
 	#include <X11/extensions/XTest.h>
 	// #include "../base/xdisplay_c.h"
+#elif defined(IS_WINDOWS)
+	#include <stdio.h>
+	#include <windows.h>
 #endif
 
 /* Convenience wrappers around ugly APIs. */
@@ -88,6 +90,25 @@
 		return sEventDrvrRef;
 	}
 #elif defined(IS_WINDOWS)
+	HDESK _lastKnownInputDesktop = NULL;
+
+	HDESK syncThreadDesktop() {
+    	HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
+		if (!hDesk) {
+			DWORD err = GetLastError();
+			printf("Failed to Open Input Desktop [0x%08X]\n", err);
+			return NULL;
+		}
+
+		if (!SetThreadDesktop(hDesk)) {
+			DWORD err = GetLastError();
+			printf("Failed to sync desktop to thread [0x%08X]\n", err);
+		}
+
+		CloseDesktop(hDesk);
+
+		return hDesk;
+	}
 
 	void win32KeyEvent(int key, MMKeyFlags flags, uintptr pid, int8_t isPid) {
 		int scan = MapVirtualKey(key & 0xff, MAPVK_VK_TO_VSC);
@@ -156,10 +177,22 @@
 		keyInput.ki.dwFlags = flags;
 		keyInput.ki.time = 0;
 		keyInput.ki.dwExtraInfo = 0;
-		UINT result = SendInput(1, &keyInput, sizeof(keyInput));
-		if (result == 0) {
+		// UINT result = SendInput(1, &keyInput, sizeof(keyInput));
+		// if (result == 0) {
+		// 	DWORD error = GetLastError();
+		// 	printf("SendInput failed! Error code: %lu\n", error);
+		// }
+
+		retry:
+		UINT send = SendInput(1, &keyInput, sizeof(keyInput));
+		if (send != 1) {
 			DWORD error = GetLastError();
 			printf("SendInput failed! Error code: %lu\n", error);
+			HDESK hDesk = syncThreadDesktop();
+			if (_lastKnownInputDesktop != hDesk) {
+				_lastKnownInputDesktop = hDesk;
+				goto retry;
+			}
 		}
 	}
 #endif

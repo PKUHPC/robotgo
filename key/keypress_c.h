@@ -12,7 +12,7 @@
 #include "../base/microsleep.h"
 #include "keypress.h"
 #include "keycode_c.h"
-
+#include <stdio.h>
 #include <ctype.h> /* For isupper() */
 #if defined(IS_MACOSX)
 	#include <ApplicationServices/ApplicationServices.h>

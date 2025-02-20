@@ -90,7 +90,7 @@
 		return sEventDrvrRef;
 	}
 #elif defined(IS_WINDOWS)
-	HDESK _lastKnownInputDesktop = NULL;
+	static HDESK _lastKnownInputDesktop = NULL;
 
 	HDESK syncThreadDesktop() {
 		HDESK currentDesk = GetThreadDesktop(GetCurrentThreadId());
@@ -117,8 +117,9 @@
 		if (!SetThreadDesktop(hDesk)) {
 			DWORD err = GetLastError();
 			printf("Failed to sync desktop to thread [0x%08X]\n", err);
-			CloseDesktop(hDesk);
 		}
+
+		CloseDesktop(hDesk);
 
 		return hDesk;
 	}

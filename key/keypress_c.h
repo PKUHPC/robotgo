@@ -93,6 +93,13 @@
 	HDESK _lastKnownInputDesktop = NULL;
 
 	HDESK syncThreadDesktop() {
+		HDESK currentDesk = GetThreadDesktop(GetCurrentThreadId());
+		if (currentDesk) {
+			printf("Thread is already associated with a desktop: %p\n", currentDesk);
+		} else {
+			printf("Thread is not associated with any desktop\n");
+		}
+
 		DWORD activeSessionId = WTSGetActiveConsoleSessionId();
 		if (activeSessionId != 1) {
 			printf("Current session is not interactive (active session ID: %d)\n", activeSessionId);

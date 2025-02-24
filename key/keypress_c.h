@@ -95,35 +95,35 @@
 	HDESK syncThreadDesktop() {
 		HDESK currentDesk = GetThreadDesktop(GetCurrentThreadId());
 		if (currentDesk) {
-			printf("Thread is already associated with a desktop: %p\n", currentDesk);
+			// printf("Thread is already associated with a desktop: %p\n", currentDesk);
 		} else {
-			printf("Thread is not associated with any desktop\n");
+			// printf("Thread is not associated with any desktop\n");
 		}
 
 		DWORD activeSessionId = WTSGetActiveConsoleSessionId();
 		if (activeSessionId != 1) {
-			printf("Current session is not interactive (active session ID: %d)\n", activeSessionId);
+			// printf("Current session is not interactive (active session ID: %d)\n", activeSessionId);
 		} else {
-			printf("Running in interactive session (session ID: %d)\n", activeSessionId);
+			// printf("Running in interactive session (session ID: %d)\n", activeSessionId);
 		}
 
     	HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
 		if (!hDesk) {
 			DWORD err = GetLastError();
-			printf("Failed to Open Input Desktop [0x%08X]\n", err);
+			// printf("Failed to Open Input Desktop [0x%08X]\n", err);
 			CloseDesktop(hDesk);
 			return NULL;
 		}
 
 		if (hDesk == NULL || hDesk == INVALID_HANDLE_VALUE) {
-			printf("Invalid desktop handle obtained.");
+			// printf("Invalid desktop handle obtained.");
 			CloseDesktop(hDesk);
 			return NULL;
 		}
 
 		if (!SetThreadDesktop(hDesk)) {
 			DWORD err = GetLastError();
-			printf("Failed to sync desktop to thread [0x%08X]\n", err);
+			// printf("Failed to sync desktop to thread [0x%08X]\n", err);
 			CloseDesktop(hDesk);
 			return NULL;
 		}
@@ -203,7 +203,7 @@
 		// UINT result = SendInput(1, &keyInput, sizeof(keyInput));
 		// if (result == 0) {
 		// 	DWORD error = GetLastError();
-		// 	printf("SendInput failed! Error code: %lu\n", error);
+			// printf("SendInput failed! Error code: %lu\n", error);
 		// }
 
     	UINT send;
@@ -213,8 +213,8 @@
 		retry:
 		send = SendInput(1, &keyInput, sizeof(keyInput));
 		if (send != 1) {
-			error = GetLastError();
-			printf("SendInput failed! Error code: %lu\n", error);
+			// error = GetLastError();
+			// printf("SendInput failed! Error code: %lu\n", error);
 			hDesk = syncThreadDesktop();
 			if (_lastKnownInputDesktop != hDesk) {
 				_lastKnownInputDesktop = hDesk;

@@ -96,20 +96,20 @@
 		HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
 		if (!hDesk) {
 			DWORD err = GetLastError();
-			// printf("Failed to Open Input Desktop [0x%08X]\n", err);
+			printf("Failed to Open Input Desktop [0x%08X]\n", err);
 			CloseDesktop(hDesk);
 			return NULL;
 		}
 
 		if (hDesk == NULL || hDesk == INVALID_HANDLE_VALUE) {
-			// printf("Invalid desktop handle obtained.");
+			printf("Invalid desktop handle obtained.");
 			CloseDesktop(hDesk);
 			return NULL;
 		}
 
 		if (!SetThreadDesktop(hDesk)) {
 			DWORD err = GetLastError();
-			// printf("Failed to sync desktop to thread [0x%08X]\n", err);
+			printf("Failed to sync desktop to thread [0x%08X]\n", err);
 			CloseDesktop(hDesk);
 			return NULL;
 		}

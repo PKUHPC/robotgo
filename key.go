@@ -18,7 +18,6 @@ import "C"
 
 import (
 	"errors"
-	"log"
 	"math/rand"
 	"reflect"
 	"runtime"

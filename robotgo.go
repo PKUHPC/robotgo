@@ -508,7 +508,11 @@ func CheckMouse(btn string) C.MMMouseButton {
 func MoveScale(x, y int, displayId ...int) (int, int) {
 	if Scale && runtime.GOOS == "windows" {
 		f := ScaleF()
+		print("MoveScale, f = ", f, " x = ", x, " y = ", y, "\n")
 		x, y = Scaled1(x, f), Scaled1(y, f)
+		print("new x = ", x, " y = ", y, "\n")
+	} else {
+		print("disabled MoveScale\n")
 	}
 
 	return x, y

@@ -46,6 +46,8 @@
 	}
 
 #elif defined(IS_WINDOWS)
+	static HDESK _lastKnownInputDesktop = NULL;
+
 	DWORD MMMouseUpToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTUP; }
 		if (button == RIGHT_BUTTON) { return MOUSEEVENTF_RIGHTUP; } 

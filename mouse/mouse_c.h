@@ -46,7 +46,34 @@
 	}
 
 #elif defined(IS_WINDOWS)
-	static HDESK _lastKnownInputDesktop = NULL;
+	static HDESK _lastKnownInputDesktop2 = NULL;
+
+	HDESK syncThreadDesktop2() {
+		HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
+		if (!hDesk) {
+			DWORD err = GetLastError();
+			printf("Failed to Open Input Desktop [0x%08X]\n", err);
+			CloseDesktop(hDesk);
+			return NULL;
+		}
+
+		if (hDesk == NULL || hDesk == INVALID_HANDLE_VALUE) {
+			printf("Invalid desktop handle obtained.");
+			CloseDesktop(hDesk);
+			return NULL;
+		}
+
+		if (!SetThreadDesktop(hDesk)) {
+			DWORD err = GetLastError();
+			printf("Failed to sync desktop to thread [0x%08X]\n", err);
+			CloseDesktop(hDesk);
+			return NULL;
+		}
+
+		CloseDesktop(hDesk);
+
+		return hDesk;
+	}
 
 	DWORD MMMouseUpToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTUP; }
@@ -112,9 +139,9 @@ void moveMouse(MMPointInt32 point){
 			printf("SetCursorPos failed! Error code: %lu\n", error);
 	
 			// 尝试重新同步线程桌面
-			hDesk = syncThreadDesktop();
-			if (_lastKnownInputDesktop != hDesk) {
-				_lastKnownInputDesktop = hDesk; // 更新已知桌面句柄
+			hDesk = syncThreadDesktop2();
+			if (_lastKnownInputDesktop2 != hDesk) {
+				_lastKnownInputDesktop2 = hDesk; // 更新已知桌面句柄
 				goto retry; // 重试设置鼠标位置
 			}
 		}

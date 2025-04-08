@@ -437,7 +437,7 @@ func keyToggles(k string, keyArr []string, pid int, args ...interface{}) error {
 		return err
 	}
 
-	log.Println("===============debug====================111111222222")
+	log.Println("===============debug====================1111112222223333333333333333")
 	C.toggleKeyCode(key, C.bool(down), flags, C.uintptr(pid))
 	if len(args) > 0 {
 		MilliSleep(KeySleep)

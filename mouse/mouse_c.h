@@ -11,6 +11,9 @@
 	#include <X11/Xlib.h>
 	#include <X11/extensions/XTest.h>
 	#include <stdlib.h>
+#elif defined(IS_WINDOWS)
+	#include <stdio.h>
+	#include <windows.h>
 #endif
 
 /* Some convenience macros for converting our enums to the system API types. */
@@ -43,6 +46,35 @@
 	}
 
 #elif defined(IS_WINDOWS)
+
+	static HDESK _lastKnownInputDesktop = NULL;
+
+	// 同步线程到输入桌面
+	HDESK syncThreadDesktop() {
+		// 打开输入桌面
+		HDESK hDesk = OpenInputDesktop(0, FALSE, GENERIC_ALL);
+		if (!hDesk) {
+			DWORD err = GetLastError();
+			printf("Failed to Open Input Desktop [0x%08X]\n", err);
+			return NULL;
+		}
+
+		if (hDesk == NULL || hDesk == INVALID_HANDLE_VALUE) {
+			printf("Invalid desktop handle obtained.\n");
+			CloseDesktop(hDesk);
+			return NULL;
+		}
+
+		// 设置线程桌面
+		if (!SetThreadDesktop(hDesk)) {
+			DWORD err = GetLastError();
+			printf("Failed to sync desktop to thread [0x%08X]\n", err);
+			CloseDesktop(hDesk);
+			return NULL;
+		}
+
+		return hDesk;
+	}
  
 	DWORD MMMouseUpToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTUP; }
@@ -96,7 +128,24 @@ void moveMouse(MMPointInt32 point){
 
 		XSync(display, false);
 	#elif defined(IS_WINDOWS)
-		SetCursorPos(point.x, point.y);
+		
+		BOOL success;
+		HDESK hDesk;
+		DWORD error;
+	
+		retry:
+		success = SetCursorPos(point.x, point.y); // 设置鼠标光标位置
+		if (!success) {
+			error = GetLastError();
+			printf("SetCursorPos failed! Error code: %lu\n", error);
+	
+			// 尝试重新同步线程桌面
+			hDesk = syncThreadDesktop();
+			if (_lastKnownInputDesktop != hDesk) {
+				_lastKnownInputDesktop = hDesk; // 更新已知桌面句柄
+				goto retry; // 重试设置鼠标位置
+			}
+		}
 	#endif
 }
 

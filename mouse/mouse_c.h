@@ -46,36 +46,6 @@
 	}
 
 #elif defined(IS_WINDOWS)
-
-	static HDESK _lastKnownInputDesktop = NULL;
-
-	// 同步线程到输入桌面
-	HDESK syncThreadDesktop() {
-		// 打开输入桌面
-		HDESK hDesk = OpenInputDesktop(0, FALSE, GENERIC_ALL);
-		if (!hDesk) {
-			DWORD err = GetLastError();
-			printf("Failed to Open Input Desktop [0x%08X]\n", err);
-			return NULL;
-		}
-
-		if (hDesk == NULL || hDesk == INVALID_HANDLE_VALUE) {
-			printf("Invalid desktop handle obtained.\n");
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		// 设置线程桌面
-		if (!SetThreadDesktop(hDesk)) {
-			DWORD err = GetLastError();
-			printf("Failed to sync desktop to thread [0x%08X]\n", err);
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		return hDesk;
-	}
- 
 	DWORD MMMouseUpToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTUP; }
 		if (button == RIGHT_BUTTON) { return MOUSEEVENTF_RIGHTUP; } 

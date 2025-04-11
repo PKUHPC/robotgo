@@ -21,8 +21,7 @@
 	#include <X11/extensions/XTest.h>
 	// #include "../base/xdisplay_c.h"
 #elif defined(IS_WINDOWS)
-	#include <stdio.h>
-	#include <windows.h>
+	#include "../base/desktop.h"
 #endif
 
 /* Convenience wrappers around ugly APIs. */
@@ -90,35 +89,6 @@
 		return sEventDrvrRef;
 	}
 #elif defined(IS_WINDOWS)
-	static HDESK _lastKnownInputDesktop = NULL;
-
-	HDESK syncThreadDesktop() {
-		HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
-		if (!hDesk) {
-			DWORD err = GetLastError();
-			printf("Failed to Open Input Desktop [0x%08X]\n", err);
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		if (hDesk == NULL || hDesk == INVALID_HANDLE_VALUE) {
-			printf("Invalid desktop handle obtained.");
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		if (!SetThreadDesktop(hDesk)) {
-			DWORD err = GetLastError();
-			printf("Failed to sync desktop to thread [0x%08X]\n", err);
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		CloseDesktop(hDesk);
-
-		return hDesk;
-	}
-
 	void win32KeyEvent(int key, MMKeyFlags flags, uintptr pid, int8_t isPid) {
 		int scan = MapVirtualKey(key & 0xff, MAPVK_VK_TO_VSC);
 
@@ -186,26 +156,32 @@
 		keyInput.ki.dwFlags = flags;
 		keyInput.ki.time = 0;
 		keyInput.ki.dwExtraInfo = 0;
-		// UINT result = SendInput(1, &keyInput, sizeof(keyInput));
-		// if (result == 0) {
-		// 	DWORD error = GetLastError();
-			// printf("SendInput failed! Error code: %lu\n", error);
-		// }
 
     	UINT send;
 		HDESK hDesk;
 		DWORD error;
 
-		retry:
-		send = SendInput(1, &keyInput, sizeof(keyInput));
-		if (send != 1) {
-			// error = GetLastError();
-			// printf("SendInput failed! Error code: %lu\n", error);
+	    int retryCount = 0;
+		while (retryCount < 10) { // 最多循环10次
+			send = SendInput(1, &keyInput, sizeof(keyInput));
+			if (send == 1) {
+				break;
+			}
+
+			error = GetLastError();
+			printf("SendInput failed! Error code: %lu\n", error);
 			hDesk = syncThreadDesktop();
 			if (_lastKnownInputDesktop != hDesk) {
 				_lastKnownInputDesktop = hDesk;
-				goto retry;
+			} else {
+				break;
 			}
+
+			retryCount++;
+		}
+
+		if (retryCount == 10) {
+			printf("SendInput failed after 10 retries.\n");
 		}
 	}
 #endif

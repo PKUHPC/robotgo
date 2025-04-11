@@ -12,8 +12,7 @@
 	#include <X11/extensions/XTest.h>
 	#include <stdlib.h>
 #elif defined(IS_WINDOWS)
-	#include <stdio.h>
-	#include <windows.h>
+	#include "../base/desktop.h"
 #endif
 
 /* Some convenience macros for converting our enums to the system API types. */
@@ -46,35 +45,6 @@
 	}
 
 #elif defined(IS_WINDOWS)
-	static HDESK _lastKnownInputDesktop2 = NULL;
-
-	HDESK syncThreadDesktop2() {
-		HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
-		if (!hDesk) {
-			DWORD err = GetLastError();
-			printf("Failed to Open Input Desktop [0x%08X]\n", err);
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		if (hDesk == NULL || hDesk == INVALID_HANDLE_VALUE) {
-			printf("Invalid desktop handle obtained.");
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		if (!SetThreadDesktop(hDesk)) {
-			DWORD err = GetLastError();
-			printf("Failed to sync desktop to thread [0x%08X]\n", err);
-			CloseDesktop(hDesk);
-			return NULL;
-		}
-
-		CloseDesktop(hDesk);
-
-		return hDesk;
-	}
-
 	DWORD MMMouseUpToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTUP; }
 		if (button == RIGHT_BUTTON) { return MOUSEEVENTF_RIGHTUP; } 
@@ -131,19 +101,28 @@ void moveMouse(MMPointInt32 point){
 		BOOL success;
 		HDESK hDesk;
 		DWORD error;
-	
-		retry:
-		success = SetCursorPos(point.x, point.y); // 设置鼠标光标位置
-		if (!success) {
+
+		int retryCount = 0;
+		while (retryCount < 10) { // 最多循环10次
+			success = SetCursorPos(point.x, point.y);
+			if (success) {
+				break;
+			}
+
 			error = GetLastError();
 			printf("SetCursorPos failed! Error code: %lu\n", error);
-	
-			// 尝试重新同步线程桌面
-			hDesk = syncThreadDesktop2();
-			if (_lastKnownInputDesktop2 != hDesk) {
-				_lastKnownInputDesktop2 = hDesk; // 更新已知桌面句柄
-				goto retry; // 重试设置鼠标位置
+			hDesk = syncThreadDesktop();
+			if (_lastKnownInputDesktop != hDesk) {
+				_lastKnownInputDesktop = hDesk;
+			} else {
+				break;
 			}
+
+			retryCount++;
+		}
+
+		if (retryCount == 10) {
+			printf("SetCursorPos failed after 10 retries.\n");
 		}
 	#endif
 }

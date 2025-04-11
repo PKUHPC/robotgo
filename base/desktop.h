@@ -2,7 +2,7 @@
 #ifndef DESKTOP_H
 #define DESKTOP_H
 
-if defined(IS_WINDOWS)
+#if defined(IS_WINDOWS)
 	#include <stdio.h>
 	#include <windows.h>
 

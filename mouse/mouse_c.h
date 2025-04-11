@@ -11,6 +11,8 @@
 	#include <X11/Xlib.h>
 	#include <X11/extensions/XTest.h>
 	#include <stdlib.h>
+#elif defined(IS_WINDOWS)
+	#include "../base/desktop.h"
 #endif
 
 /* Some convenience macros for converting our enums to the system API types. */
@@ -43,7 +45,6 @@
 	}
 
 #elif defined(IS_WINDOWS)
- 
 	DWORD MMMouseUpToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTUP; }
 		if (button == RIGHT_BUTTON) { return MOUSEEVENTF_RIGHTUP; } 
@@ -96,7 +97,33 @@ void moveMouse(MMPointInt32 point){
 
 		XSync(display, false);
 	#elif defined(IS_WINDOWS)
-		SetCursorPos(point.x, point.y);
+		
+		BOOL success;
+		HDESK hDesk;
+		DWORD error;
+
+		int retryCount = 0;
+		while (retryCount < 10) { // 最多循环10次
+			success = SetCursorPos(point.x, point.y);
+			if (success) {
+				break;
+			}
+
+			error = GetLastError();
+			printf("SetCursorPos failed! Error code: %lu\n", error);
+			hDesk = syncThreadDesktop();
+			if (lastKnownInputDesktop != hDesk) {
+				lastKnownInputDesktop = hDesk;
+			} else {
+				break;
+			}
+
+			retryCount++;
+		}
+
+		if (retryCount == 10) {
+			printf("SetCursorPos failed after 10 retries.\n");
+		}
 	#endif
 }
 

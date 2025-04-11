@@ -12,7 +12,6 @@
 #include "../base/microsleep.h"
 #include "keypress.h"
 #include "keycode_c.h"
-
 #include <ctype.h> /* For isupper() */
 #if defined(IS_MACOSX)
 	#include <ApplicationServices/ApplicationServices.h>
@@ -21,6 +20,8 @@
 #elif defined(USE_X11)
 	#include <X11/extensions/XTest.h>
 	// #include "../base/xdisplay_c.h"
+#elif defined(IS_WINDOWS)
+	#include "../base/desktop.h"
 #endif
 
 /* Convenience wrappers around ugly APIs. */
@@ -88,7 +89,6 @@
 		return sEventDrvrRef;
 	}
 #elif defined(IS_WINDOWS)
-
 	void win32KeyEvent(int key, MMKeyFlags flags, uintptr pid, int8_t isPid) {
 		int scan = MapVirtualKey(key & 0xff, MAPVK_VK_TO_VSC);
 
@@ -156,7 +156,33 @@
 		keyInput.ki.dwFlags = flags;
 		keyInput.ki.time = 0;
 		keyInput.ki.dwExtraInfo = 0;
-		SendInput(1, &keyInput, sizeof(keyInput));
+
+    	UINT send;
+		HDESK hDesk;
+		DWORD error;
+
+	    int retryCount = 0;
+		while (retryCount < 10) { // 最多循环10次
+			send = SendInput(1, &keyInput, sizeof(keyInput));
+			if (send == 1) {
+				break;
+			}
+
+			error = GetLastError();
+			printf("SendInput failed! Error code: %lu\n", error);
+			hDesk = syncThreadDesktop();
+			if (lastKnownInputDesktop != hDesk) {
+				lastKnownInputDesktop = hDesk;
+			} else {
+				break;
+			}
+
+			retryCount++;
+		}
+
+		if (retryCount == 10) {
+			printf("SendInput failed after 10 retries.\n");
+		}
 	}
 #endif
 

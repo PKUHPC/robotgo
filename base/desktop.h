@@ -35,5 +35,3 @@ if defined(IS_WINDOWS)
         return hDesk;
     }
 #endif
-
-#endif /* DESKTOP_H */

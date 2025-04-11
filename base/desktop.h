@@ -35,3 +35,5 @@
         return hDesk;
     }
 #endif
+
+#endif  // DESKTOP_H

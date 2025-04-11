@@ -171,8 +171,8 @@
 			error = GetLastError();
 			printf("SendInput failed! Error code: %lu\n", error);
 			hDesk = syncThreadDesktop();
-			if (_lastKnownInputDesktop != hDesk) {
-				_lastKnownInputDesktop = hDesk;
+			if (lastKnownInputDesktop != hDesk) {
+				lastKnownInputDesktop = hDesk;
 			} else {
 				break;
 			}

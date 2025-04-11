@@ -6,9 +6,9 @@
 	#include <stdio.h>
 	#include <windows.h>
 
-    static HDESK _lastKnownInputDesktop = NULL;
+    static HDESK lastKnownInputDesktop = NULL;
 
-    HDESK syncThreadDesktop() {
+    static inline HDESK syncThreadDesktop() {
         HDESK hDesk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, GENERIC_ALL);
         if (!hDesk) {
             DWORD err = GetLastError();

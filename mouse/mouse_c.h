@@ -145,6 +145,50 @@ void moveMouse(MMPointInt32 point){
 	#endif
 }
 
+/* Move the mouse relative. */
+void moveMouseRelative(MMPointInt32 point){
+	#if defined(IS_MACOSX)
+	#elif defined(USE_X11)
+	#elif defined(IS_WINDOWS)
+
+		BOOL success;
+		HDESK hDesk;
+		DWORD error;
+
+		int retryCount = 0;
+		while (retryCount < 10) {
+    		INPUT mouseInput;
+    		mouseInput.type = INPUT_MOUSE;
+    		mouseInput.mi.dx = point.x;
+    		mouseInput.mi.dy = point.y;
+    		mouseInput.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK;
+    		mouseInput.mi.time = 0;		// System will provide the timestamp
+
+    		mouseInput.mi.dwExtraInfo = 0;
+    		mouseInput.mi.mouseData = 0;
+    		success = SendInput(1, &mouseInput, sizeof(mouseInput));
+			if (success != 0) {
+				break;
+			}
+
+			error = GetLastError();
+			printf("SetCursorPos failed! Error code: %lu\n", error);
+			hDesk = syncThreadDesktop();
+			if (lastKnownInputDesktop != hDesk) {
+				lastKnownInputDesktop = hDesk;
+			} else {
+				break;
+			}
+
+			retryCount++;
+		}
+
+		if (retryCount == 10) {
+			printf("SetCursorPos failed after 10 retries.\n");
+		}
+	#endif
+}
+
 void dragMouse(MMPointInt32 point, const MMMouseButton button){
 	#if defined(IS_MACOSX)
 		const CGEventType dragType = MMMouseDragToCGEventType(button);

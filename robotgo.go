@@ -619,7 +619,13 @@ func MoveArgs(x, y int) (int, int) {
 
 // MoveRelative move mouse with relative
 func MoveRelative(x, y int) {
-	Move(MoveArgs(x, y))
+	x, y = MoveScale(x, y)
+
+	cx := C.int32_t(x)
+	cy := C.int32_t(y)
+	C.moveMouseRelative(C.MMPointInt32Make(cx, cy))
+
+	MilliSleep(MouseSleep)
 }
 
 // MoveSmoothRelative move mouse smooth with relative

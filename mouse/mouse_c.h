@@ -107,7 +107,7 @@ void moveMouse(MMPointInt32 point){
 	        // Mouse motion is now done using SendInput with MOUSEINPUT.
     		// We use Absolute mouse positioning
     		#define MOUSE_COORD_TO_ABS(coord, width_or_height) ( \
-    			((65536 * (coord)) / (width_or_height)) + ((coord) < 0 ? (-1) : 1))
+    			((65535 * (coord)) / (width_or_height)))
 
     		MMRectInt32 rect = getScreenRect(1);
     		int32_t x = MOUSE_COORD_TO_ABS(point.x - rect.origin.x, rect.size.w);
@@ -118,6 +118,50 @@ void moveMouse(MMPointInt32 point){
     		mouseInput.mi.dx = x;
     		mouseInput.mi.dy = y;
     		mouseInput.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK;
+    		mouseInput.mi.time = 0;		// System will provide the timestamp
+
+    		mouseInput.mi.dwExtraInfo = 0;
+    		mouseInput.mi.mouseData = 0;
+    		success = SendInput(1, &mouseInput, sizeof(mouseInput));
+			if (success != 0) {
+				break;
+			}
+
+			error = GetLastError();
+			printf("SetCursorPos failed! Error code: %lu\n", error);
+			hDesk = syncThreadDesktop();
+			if (lastKnownInputDesktop != hDesk) {
+				lastKnownInputDesktop = hDesk;
+			} else {
+				break;
+			}
+
+			retryCount++;
+		}
+
+		if (retryCount == 10) {
+			printf("SetCursorPos failed after 10 retries.\n");
+		}
+	#endif
+}
+
+/* Move the mouse relative. */
+void moveMouseRelative(MMPointInt32 point){
+	#if defined(IS_MACOSX)
+	#elif defined(USE_X11)
+	#elif defined(IS_WINDOWS)
+
+		BOOL success;
+		HDESK hDesk;
+		DWORD error;
+
+		int retryCount = 0;
+		while (retryCount < 10) {
+    		INPUT mouseInput;
+    		mouseInput.type = INPUT_MOUSE;
+    		mouseInput.mi.dx = point.x;
+    		mouseInput.mi.dy = point.y;
+    		mouseInput.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK;
     		mouseInput.mi.time = 0;		// System will provide the timestamp
 
     		mouseInput.mi.dwExtraInfo = 0;

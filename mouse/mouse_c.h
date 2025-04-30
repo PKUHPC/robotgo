@@ -110,8 +110,6 @@ void moveMouse(MMPointInt32 point){
     			((65535 * (coord)) / (width_or_height)))
 
     		MMRectInt32 rect = getScreenRect(1);
-    		printf("The value is: %d\n", rect.size.w);
-    		printf("The value is: %d\n", rect.size.h);
     		int32_t x = MOUSE_COORD_TO_ABS(point.x - rect.origin.x, rect.size.w);
     		int32_t y = MOUSE_COORD_TO_ABS(point.y - rect.origin.y, rect.size.h);
 

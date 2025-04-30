@@ -510,10 +510,10 @@ func CheckMouse(btn string) C.MMMouseButton {
 
 // MoveScale calculate the os scale factor x, y
 func MoveScale(x, y int, displayId ...int) (int, int) {
-	//	if Scale || runtime.GOOS == "windows" {
-	//		f := ScaleF()
-	//		x, y = Scaled1(x, f), Scaled1(y, f)
-	//	}
+	if Scale || runtime.GOOS == "windows" {
+		f := ScaleF()
+		x, y = Scaled1(x, f), Scaled1(y, f)
+	}
 
 	return x, y
 }

@@ -106,17 +106,10 @@ void moveMouse(MMPointInt32 point){
 		while (retryCount < 10) { // 最多循环10次
 	        // Mouse motion is now done using SendInput with MOUSEINPUT.
     		// We use Absolute mouse positioning
-    		#define MOUSE_COORD_TO_ABS(coord, width_or_height) ( \
-    			((65536 * (coord)) / (width_or_height)) + ((coord) < 0 ? (-1) : 1))
-
-    		MMRectInt32 rect = getScreenRect(1);
-    		int32_t x = MOUSE_COORD_TO_ABS(point.x - rect.origin.x, rect.size.w);
-    		int32_t y = MOUSE_COORD_TO_ABS(point.y - rect.origin.y, rect.size.h);
-
     		INPUT mouseInput;
     		mouseInput.type = INPUT_MOUSE;
-    		mouseInput.mi.dx = x;
-    		mouseInput.mi.dy = y;
+    		mouseInput.mi.dx = point.x;
+    		mouseInput.mi.dy = point.y;
     		mouseInput.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK;
     		mouseInput.mi.time = 0;		// System will provide the timestamp
 

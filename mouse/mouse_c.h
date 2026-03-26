@@ -45,15 +45,27 @@
 	}
 
 #elif defined(IS_WINDOWS)
+	DWORD MMMouseButtonData(MMMouseButton button) {
+		if (button == BACK_BUTTON) { return XBUTTON1; }
+		if (button == FORWARD_BUTTON) { return XBUTTON2; }
+		return 0;
+	}
+
 	DWORD MMMouseUpToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTUP; }
 		if (button == RIGHT_BUTTON) { return MOUSEEVENTF_RIGHTUP; } 
+		if (button == BACK_BUTTON || button == FORWARD_BUTTON) {
+			return MOUSEEVENTF_XUP;
+		}
 		return MOUSEEVENTF_MIDDLEUP;
 	}
 
 	DWORD MMMouseDownToMEventF(MMMouseButton button) {
 		if (button == LEFT_BUTTON) { return MOUSEEVENTF_LEFTDOWN; }
 		if (button == RIGHT_BUTTON) { return MOUSEEVENTF_RIGHTDOWN; } 
+		if (button == BACK_BUTTON || button == FORWARD_BUTTON) {
+			return MOUSEEVENTF_XDOWN;
+		}
 		return MOUSEEVENTF_MIDDLEDOWN;
 	}
 
@@ -252,7 +264,7 @@ void toggleMouse(bool down, MMMouseButton button) {
 		mouseInput.mi.dwFlags = MMMouseToMEventF(down, button);
 		mouseInput.mi.time = 0;
 		mouseInput.mi.dwExtraInfo = 0;
-		mouseInput.mi.mouseData = 0;
+		mouseInput.mi.mouseData = MMMouseButtonData(button);
 		SendInput(1, &mouseInput, sizeof(mouseInput));
 	#endif
 }

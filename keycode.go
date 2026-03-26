@@ -24,6 +24,8 @@ const (
 	Mleft      = "left"
 	Mright     = "right"
 	Center     = "center"
+	Mback      = "back"
+	Mforward   = "forward"
 	WheelDown  = "wheelDown"
 	WheelUp    = "wheelUp"
 	WheelLeft  = "wheelLeft"

@@ -51,6 +51,7 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	"runtime"
 	"time"
@@ -496,6 +497,8 @@ func CheckMouse(btn string) C.MMMouseButton {
 		"left":       C.LEFT_BUTTON,
 		"center":     C.CENTER_BUTTON,
 		"right":      C.RIGHT_BUTTON,
+		"back":       C.BACK_BUTTON,
+		"forward":    C.FORWARD_BUTTON,
 		"wheelDown":  C.WheelDown,
 		"wheelUp":    C.WheelUp,
 		"wheelLeft":  C.WheelLeft,
@@ -506,6 +509,25 @@ func CheckMouse(btn string) C.MMMouseButton {
 	}
 
 	return C.LEFT_BUTTON
+}
+
+func MouseButtonString(btn C.MMMouseButton) string {
+	m1 := map[C.MMMouseButton]string{
+		C.LEFT_BUTTON:    "left",
+		C.CENTER_BUTTON:  "center",
+		C.RIGHT_BUTTON:   "right",
+		C.BACK_BUTTON:    "back",
+		C.FORWARD_BUTTON: "forward",
+		C.WheelDown:      "wheelDown",
+		C.WheelUp:        "wheelUp",
+		C.WheelLeft:      "wheelLeft",
+		C.WheelRight:     "wheelRight",
+	}
+	if v, ok := m1[btn]; ok {
+		return v
+	}
+
+	return fmt.Sprintf("button%d", btn)
 }
 
 // MoveScale calculate the os scale factor x, y
